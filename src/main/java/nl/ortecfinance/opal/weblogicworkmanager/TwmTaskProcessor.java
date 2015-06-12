@@ -61,7 +61,7 @@ public class TwmTaskProcessor {
 //                    }
 //                }
             }
-
+            printMap();
             //  System.out.println("TWM work done");
         } catch (WorkException ex) {
             System.out.println("Failed to process BatchSlice " + ex);
@@ -130,7 +130,12 @@ class BatchSlice implements Work {
     @Override
     public void run() {
         try {
-            Thread.sleep(30000);
+//            if (id == 0) {
+//                Thread.sleep(5000);
+//            } else {
+//                Thread.sleep(3000);
+//            }
+            Thread.sleep(2000);
         } catch (InterruptedException ex) {
             System.out.println("Sleep failed");
         }

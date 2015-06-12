@@ -14,11 +14,14 @@
         <max-threads-constraint>
             <name>wm/SimulationWorkManagerMaxThreads</name>
             <count>1</count>
+            <queue-size>1000</queue-size>
         </max-threads-constraint>
-        <capacity>
-            <name>myCap</name>
-            <count>10</count>
-        </capacity>
+        <!--
+                <capacity>
+                    <name>myCap</name>
+                    <count>10000</count>
+                </capacity>
+        -->
     </work-manager>
     <!--
         <wl-dispatch-policy>wm/myWm</wl-dispatch-policy>
