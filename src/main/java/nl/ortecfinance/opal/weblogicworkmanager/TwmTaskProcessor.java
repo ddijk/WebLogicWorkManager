@@ -13,23 +13,25 @@ import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-@Stateless
+//@Stateless
 public class TwmTaskProcessor {
 
-    WorkManager workManager;
+    static WorkManager workManager;
+    int block;
 
-    byte[] lock;
-
-    static int taskCounter;
-
+//    byte[] lock;
+    //  static int taskCounter;
     Map<Integer, Integer> statusMap = new HashMap<>();
 
-    @PostConstruct
-    void lookupWm() {
+    // @PostConstruct
+    TwmTaskProcessor() {
         try {
-            workManager = (WorkManager) new InitialContext().lookup("java:comp/env/wm/myWm");
-            System.out.println("***************");
-            printMap();
+            if (workManager == null) {
+                workManager = (WorkManager) new InitialContext().lookup("java:comp/env/wm/myWm");
+                System.out.println("new WM looked up");
+            } else {
+                System.out.println("reusing wm");
+            }
             System.out.println("****  Started ******");
         } catch (NamingException ex) {
             throw new RuntimeException(ex);
@@ -49,7 +51,7 @@ public class TwmTaskProcessor {
 //                }
 
                 if (i % 1000 == 0) {
-                    printMap();
+                    printMap(block++);
                 }
 
 //                while (workItem.getStatus() != WorkEvent.WORK_COMPLETED) {
@@ -61,19 +63,19 @@ public class TwmTaskProcessor {
 //                    }
 //                }
             }
-            printMap();
+            printMap(block);
             //  System.out.println("TWM work done");
-        } catch (WorkException ex) {
-            System.out.println("Failed to process BatchSlice " + ex);
-        } catch (IllegalArgumentException ex) {
+        } catch (WorkException | IllegalArgumentException ex) {
             System.out.println("Failed to process BatchSlice " + ex);
         }
     }
 
-    private void printMap() {
+    private void printMap(int n) {
+        System.out.println("------ top " + n + " -------");
         for (Entry<Integer, Integer> entry : statusMap.entrySet()) {
             System.out.println(printKey(entry.getKey()) + ": " + entry.getValue());
         }
+        System.out.println("------ bottom -------");
     }
 
     private void updateMap(int status) {
@@ -135,7 +137,7 @@ class BatchSlice implements Work {
 //            } else {
 //                Thread.sleep(3000);
 //            }
-            Thread.sleep(2000);
+            Thread.sleep(10000);
         } catch (InterruptedException ex) {
             System.out.println("Sleep failed");
         }

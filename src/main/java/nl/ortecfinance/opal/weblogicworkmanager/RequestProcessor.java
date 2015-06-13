@@ -13,7 +13,7 @@ public class RequestProcessor {
     @Inject
     TaskProcessor taskProcessor;
 
-    @Inject
+    //  @Inject
     TwmTaskProcessor twmTaskProcessor;
 
     @GET
@@ -26,6 +26,8 @@ public class RequestProcessor {
     @GET
     @Path("twm")
     public Response submitTwmTask() {
+
+        twmTaskProcessor = new TwmTaskProcessor();
         twmTaskProcessor.doTask();
         return Response.ok().build();
     }

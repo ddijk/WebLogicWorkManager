@@ -1,27 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <weblogic-web-app xmlns="http://xmlns.oracle.com/weblogic/weblogic-web-app" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd http://xmlns.oracle.com/weblogic/weblogic-web-app http://xmlns.oracle.com/weblogic/weblogic-web-app/1.0/weblogic-web-app.xsd">
-    <jsp-descriptor>
-        <keepgenerated>true</keepgenerated>
-        <debug>true</debug>
-    </jsp-descriptor>
-    <context-root>/WebLogicWorkManager</context-root>
-    <work-manager>
-        <name>wm/myWm</name>
-        <min-threads-constraint>
-            <name>wm/SimulationWorkManagerMinThreads</name>
-            <count>1</count>
-        </min-threads-constraint>
-        <max-threads-constraint>
-            <name>wm/SimulationWorkManagerMaxThreads</name>
-            <count>1</count>
-            <!--  <queue-size>1000</queue-size> -->
-        </max-threads-constraint>
-        <capacity>
-            <name>myCap</name>
-            <count>10000</count>
-        </capacity>
-    </work-manager>
-    <!--
-        <wl-dispatch-policy>wm/myWm</wl-dispatch-policy>
-    -->
+  <jsp-descriptor>
+    <keepgenerated>true</keepgenerated>
+    <debug>true</debug>
+  </jsp-descriptor>
+  <context-root>/WebLogicWorkManager</context-root>
+  <!--
+  <work-manager>
+    <name>wm/myWm</name>
+    <min-threads-constraint>
+      <name>wm/SimulationWorkManagerMinThreads</name>
+      <count>1</count>
+    </min-threads-constraint>
+    <max-threads-constraint>
+      <name>wm/SimulationWorkManagerMaxThreads</name>
+      <count>1</count>-->
+      <!--  <queue-size>1000</queue-size> -->
+  <!--  </max-threads-constraint>
+    <capacity>
+      <name>myCap</name>
+      <count>6000</count>
+    </capacity>
+  </work-manager>
+  -->
 </weblogic-web-app>
