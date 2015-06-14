@@ -21,9 +21,9 @@ public class TwmTaskProcessor {
 
     static WorkManager workManager;
 
-   static  Map<Integer, Integer> statusToCountMap = new HashMap<>();
-   static  Map<Integer, List<Integer>> workItemToStatusHistoryMap = new TreeMap<>();
-   static AtomicInteger index = new AtomicInteger();
+    static Map<Integer, Integer> statusToCountMap = new HashMap<>();
+    static Map<Integer, List<Integer>> workItemToStatusHistoryMap = new TreeMap<>();
+    static AtomicInteger index = new AtomicInteger();
 
     TwmTaskProcessor() {
         try {
@@ -40,8 +40,7 @@ public class TwmTaskProcessor {
     }
 
     public void doTask() throws InterruptedException {
-        statusToCountMap.clear();
-        workItemToStatusHistoryMap.clear();
+
         int block = 0;
 
         List<WorkItem> workItems = new ArrayList<>();
@@ -49,29 +48,13 @@ public class TwmTaskProcessor {
             for (int i = 0; i < 200; i++) {
                 final int id = index.incrementAndGet();
                 WorkItem workItem = workManager.schedule(new BatchSlice(id), new MyWorkListener(id, workItemToStatusHistoryMap));
-                
-                final int status = workItem.getStatus();
-                workItems.add(workItem);
-                //  workItemToStatusHistoryMap.get(i).add(status);
-                //   System.out.println("get status for " + i + " is " + status);
 
-                updateMap(status);
-//                if (status != WorkEvent.WORK_ACCEPTED) {
-//                    System.out.println("WorkItem " + workItem.getStatus());
-//                }
+                workItems.add(workItem);
 
                 if (i % 1000 == 0) {
                     printMap(block++);
                 }
 
-//                while (workItem.getStatus() != WorkEvent.WORK_COMPLETED) {
-//                    // System.out.println("Nog niet klaar");
-//                    try {
-//                        Thread.sleep(1000);
-//                    } catch (InterruptedException ex) {
-//                        System.out.println("Sleep failed. " + ex);
-//                    }
-//                }
             }
             printMap(block);
             //  System.out.println("TWM work done");
@@ -92,16 +75,6 @@ public class TwmTaskProcessor {
             System.out.println(printKey(entry.getKey()) + ": " + entry.getValue());
         }
         System.out.println("------ bottom -------");
-    }
-
-    private void updateMap(int status) {
-        Integer currentCount = statusToCountMap.get(status);
-        if (currentCount != null) {
-            statusToCountMap.put(status, ++currentCount);
-        } else {
-            statusToCountMap.put(status, 1);
-        }
-
     }
 
     /*
