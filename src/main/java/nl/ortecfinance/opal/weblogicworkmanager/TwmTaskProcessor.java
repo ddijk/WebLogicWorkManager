@@ -7,23 +7,22 @@ import commonj.work.WorkItem;
 import commonj.work.WorkListener;
 import commonj.work.WorkManager;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 public class TwmTaskProcessor {
 
     static WorkManager workManager;
-    int block;
-
 
     Map<Integer, Integer> statusToCountMap = new HashMap<>();
-    Map<Integer, List<Integer>> workItemToStatusHistoryMap = new HashMap<>();
+    Map<Integer, List<Integer>> workItemToStatusHistoryMap = new TreeMap<>();
 
-  
     TwmTaskProcessor() {
         try {
             if (workManager == null) {
@@ -38,14 +37,17 @@ public class TwmTaskProcessor {
         }
     }
 
-    public void doTask() {
+    public void doTask() throws InterruptedException {
+        int block = 0;
 
+        List<WorkItem> workItems = new ArrayList<>();
         try {
             for (int i = 0; i < 200; i++) {
                 WorkItem workItem = workManager.schedule(new BatchSlice(i), new MyWorkListener(i, workItemToStatusHistoryMap));
                 final int status = workItem.getStatus();
-              //  workItemToStatusHistoryMap.get(i).add(status);
-                System.out.println("get status for "+ i+" is " + status);
+                workItems.add(workItem);
+                //  workItemToStatusHistoryMap.get(i).add(status);
+                //   System.out.println("get status for " + i + " is " + status);
 
                 updateMap(status);
 //                if (status != WorkEvent.WORK_ACCEPTED) {
@@ -67,6 +69,12 @@ public class TwmTaskProcessor {
             }
             printMap(block);
             //  System.out.println("TWM work done");
+            System.out.println("wait for all");
+            workManager.waitForAll(workItems, Long.MAX_VALUE);
+            System.out.println("wait done");
+            //     Thread.sleep(2000);
+            printStatusHistoryMap();
+
         } catch (WorkException | IllegalArgumentException ex) {
             System.out.println("Failed to process BatchSlice " + ex);
         }
@@ -111,6 +119,17 @@ public class TwmTaskProcessor {
                 return "onbekende status";
         }
     }
+
+    private void printStatusHistoryMap() {
+
+        for (Entry<Integer, List<Integer>> entrySet : workItemToStatusHistoryMap.entrySet()) {
+            Integer key = entrySet.getKey();
+            List<Integer> value = entrySet.getValue();
+
+            System.out.println("workItem " + key + " statusHistory=" + value);
+
+        }
+    }
 }
 
 class BatchSlice implements Work {
@@ -139,7 +158,7 @@ class BatchSlice implements Work {
 //            } else {
 //                Thread.sleep(3000);
 //            }
-            Thread.sleep(5000);
+            Thread.sleep(1000);
         } catch (InterruptedException ex) {
             System.out.println("Sleep failed");
         }
@@ -160,37 +179,37 @@ class MyWorkListener implements WorkListener {
     MyWorkListener(int i, Map<Integer, List<Integer>> workItemToStatusHistoryMap) {
         this.id = i;
         this.workItemToStatusHistoryMap = workItemToStatusHistoryMap;
-        List<Integer> myStatuses = new ArrayList<>();
+        List<Integer> myStatuses = Collections.synchronizedList(new ArrayList<Integer>());
         myStatuses.add(-1);
-         workItemToStatusHistoryMap.put(i, myStatuses);
+        workItemToStatusHistoryMap.put(i, myStatuses);
     }
 
     @Override
     public void workAccepted(WorkEvent we) {
-       workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_ACCEPTED);
-       System.out.println("workAccepted for " + id +", history="+workItemToStatusHistoryMap.get(id));
-   //     System.out.println("workAccepted for " + id);
+        workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_ACCEPTED);
+        //      System.out.println("workAccepted for " + id +", history="+workItemToStatusHistoryMap.get(id));
+        //     System.out.println("workAccepted for " + id);
     }
 
     @Override
     public void workRejected(WorkEvent we) {
-       workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_REJECTED);
-        System.out.println("workRejected for " + id+", history="+workItemToStatusHistoryMap.get(id));
-   //     System.out.println("workRejected for " + id);
+        workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_REJECTED);
+        //       System.out.println("workRejected for " + id+", history="+workItemToStatusHistoryMap.get(id));
+        //     System.out.println("workRejected for " + id);
     }
 
     @Override
     public void workStarted(WorkEvent we) {
         workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_STARTED);
-        System.out.println("workStarted for " + id+", history="+workItemToStatusHistoryMap.get(id));
-  //      System.out.println("workStarted for " + id);
+        //   System.out.println("workStarted for " + id+", history="+workItemToStatusHistoryMap.get(id));
+        //      System.out.println("workStarted for " + id);
     }
 
     @Override
     public void workCompleted(WorkEvent we) {
         workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_COMPLETED);
-        System.out.println("workCompleted for " + id+", history="+workItemToStatusHistoryMap.get(id));
-      //  System.out.println("workCompleted for " + id);
+        //   System.out.println("workCompleted for " + id+", history="+workItemToStatusHistoryMap.get(id));
+        //  System.out.println("workCompleted for " + id);
     }
 
 }
