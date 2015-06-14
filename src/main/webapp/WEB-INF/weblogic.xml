@@ -5,6 +5,13 @@
     <debug>true</debug>
   </jsp-descriptor>
   <context-root>/WebLogicWorkManager</context-root>
+  <work-manager>
+    <name>wm/myWm</name>
+    <capacity>
+      <name>myCap</name>
+      <count>100</count>
+    </capacity>
+  </work-manager>
   <!--
   <work-manager>
     <name>wm/myWm</name>
@@ -22,5 +29,8 @@
       <count>6000</count>
     </capacity>
   </work-manager>
+  -->
+  <!--
+  <wl-dispatch-policy>wm/myWm</wl-dispatch-policy>
   -->
 </weblogic-web-app>

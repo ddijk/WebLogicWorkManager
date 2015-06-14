@@ -1,29 +1,29 @@
 package nl.ortecfinance.opal.weblogicworkmanager;
 
 import commonj.work.Work;
+import commonj.work.WorkEvent;
 import commonj.work.WorkException;
 import commonj.work.WorkItem;
+import commonj.work.WorkListener;
 import commonj.work.WorkManager;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.annotation.PostConstruct;
-import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-//@Stateless
 public class TwmTaskProcessor {
 
     static WorkManager workManager;
     int block;
 
-//    byte[] lock;
-    //  static int taskCounter;
-    Map<Integer, Integer> statusMap = new HashMap<>();
 
-    // @PostConstruct
+    Map<Integer, Integer> statusToCountMap = new HashMap<>();
+    Map<Integer, List<Integer>> workItemToStatusHistoryMap = new HashMap<>();
+
+  
     TwmTaskProcessor() {
         try {
             if (workManager == null) {
@@ -41,10 +41,12 @@ public class TwmTaskProcessor {
     public void doTask() {
 
         try {
-            for (int i = 0; i < 10000; i++) {
-                WorkItem workItem = workManager.schedule(new BatchSlice(i));
-
+            for (int i = 0; i < 200; i++) {
+                WorkItem workItem = workManager.schedule(new BatchSlice(i), new MyWorkListener(i, workItemToStatusHistoryMap));
                 final int status = workItem.getStatus();
+              //  workItemToStatusHistoryMap.get(i).add(status);
+                System.out.println("get status for "+ i+" is " + status);
+
                 updateMap(status);
 //                if (status != WorkEvent.WORK_ACCEPTED) {
 //                    System.out.println("WorkItem " + workItem.getStatus());
@@ -72,18 +74,18 @@ public class TwmTaskProcessor {
 
     private void printMap(int n) {
         System.out.println("------ top " + n + " -------");
-        for (Entry<Integer, Integer> entry : statusMap.entrySet()) {
+        for (Entry<Integer, Integer> entry : statusToCountMap.entrySet()) {
             System.out.println(printKey(entry.getKey()) + ": " + entry.getValue());
         }
         System.out.println("------ bottom -------");
     }
 
     private void updateMap(int status) {
-        Integer currentCount = statusMap.get(status);
+        Integer currentCount = statusToCountMap.get(status);
         if (currentCount != null) {
-            statusMap.put(status, ++currentCount);
+            statusToCountMap.put(status, ++currentCount);
         } else {
-            statusMap.put(status, 1);
+            statusToCountMap.put(status, 1);
         }
 
     }
@@ -137,11 +139,58 @@ class BatchSlice implements Work {
 //            } else {
 //                Thread.sleep(3000);
 //            }
-            Thread.sleep(10000);
+            Thread.sleep(5000);
         } catch (InterruptedException ex) {
             System.out.println("Sleep failed");
         }
-        System.out.println("TWM : Doing task " + id + " @" + new Date());
+        //  System.out.println("TWM : Doing task " + id + " @" + new Date());
+    }
+
+}
+
+class MyWorkListener implements WorkListener {
+
+    int id;
+    Map<Integer, List<Integer>> workItemToStatusHistoryMap;
+
+    public MyWorkListener(int id) {
+        this.id = id;
+    }
+
+    MyWorkListener(int i, Map<Integer, List<Integer>> workItemToStatusHistoryMap) {
+        this.id = i;
+        this.workItemToStatusHistoryMap = workItemToStatusHistoryMap;
+        List<Integer> myStatuses = new ArrayList<>();
+        myStatuses.add(-1);
+         workItemToStatusHistoryMap.put(i, myStatuses);
+    }
+
+    @Override
+    public void workAccepted(WorkEvent we) {
+       workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_ACCEPTED);
+       System.out.println("workAccepted for " + id +", history="+workItemToStatusHistoryMap.get(id));
+   //     System.out.println("workAccepted for " + id);
+    }
+
+    @Override
+    public void workRejected(WorkEvent we) {
+       workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_REJECTED);
+        System.out.println("workRejected for " + id+", history="+workItemToStatusHistoryMap.get(id));
+   //     System.out.println("workRejected for " + id);
+    }
+
+    @Override
+    public void workStarted(WorkEvent we) {
+        workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_STARTED);
+        System.out.println("workStarted for " + id+", history="+workItemToStatusHistoryMap.get(id));
+  //      System.out.println("workStarted for " + id);
+    }
+
+    @Override
+    public void workCompleted(WorkEvent we) {
+        workItemToStatusHistoryMap.get(id).add(WorkEvent.WORK_COMPLETED);
+        System.out.println("workCompleted for " + id+", history="+workItemToStatusHistoryMap.get(id));
+      //  System.out.println("workCompleted for " + id);
     }
 
 }
