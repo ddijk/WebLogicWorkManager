@@ -12,6 +12,13 @@
       <count>100</count>
     </capacity>
   </work-manager>
+  <work-manager>
+    <name>wm/myWebWm</name>
+    <min-threads-constraint>
+      <name>wm/myWebWmMinThreads</name>
+      <count>1</count>
+    </min-threads-constraint>
+  </work-manager>
   <!--
   <work-manager>
     <name>wm/myWm</name>
@@ -33,4 +40,5 @@
   <!--
   <wl-dispatch-policy>wm/myWm</wl-dispatch-policy>
   -->
+   <wl-dispatch-policy>wm/myWebWm</wl-dispatch-policy>
 </weblogic-web-app>

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -20,8 +21,9 @@ public class TwmTaskProcessor {
 
     static WorkManager workManager;
 
-    Map<Integer, Integer> statusToCountMap = new HashMap<>();
-    Map<Integer, List<Integer>> workItemToStatusHistoryMap = new TreeMap<>();
+   static  Map<Integer, Integer> statusToCountMap = new HashMap<>();
+   static  Map<Integer, List<Integer>> workItemToStatusHistoryMap = new TreeMap<>();
+   static AtomicInteger index = new AtomicInteger();
 
     TwmTaskProcessor() {
         try {
@@ -38,12 +40,16 @@ public class TwmTaskProcessor {
     }
 
     public void doTask() throws InterruptedException {
+        statusToCountMap.clear();
+        workItemToStatusHistoryMap.clear();
         int block = 0;
 
         List<WorkItem> workItems = new ArrayList<>();
         try {
             for (int i = 0; i < 200; i++) {
-                WorkItem workItem = workManager.schedule(new BatchSlice(i), new MyWorkListener(i, workItemToStatusHistoryMap));
+                final int id = index.incrementAndGet();
+                WorkItem workItem = workManager.schedule(new BatchSlice(id), new MyWorkListener(id, workItemToStatusHistoryMap));
+                
                 final int status = workItem.getStatus();
                 workItems.add(workItem);
                 //  workItemToStatusHistoryMap.get(i).add(status);

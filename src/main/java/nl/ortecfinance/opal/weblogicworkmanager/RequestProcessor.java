@@ -57,6 +57,6 @@ public class RequestProcessor {
     @Path("statusHist")
     public Response statusHist(@QueryParam("id") Integer id) {
         
-        return Response.ok(twmTaskProcessor.workItemToStatusHistoryMap.get(id)).build();
+        return Response.ok(""+twmTaskProcessor.workItemToStatusHistoryMap.get(id)).build();
     }
 }
