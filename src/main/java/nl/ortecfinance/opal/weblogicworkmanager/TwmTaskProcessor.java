@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -21,9 +23,11 @@ public class TwmTaskProcessor {
 
     static WorkManager workManager;
 
-    static Map<Integer, Integer> statusToCountMap = new HashMap<>();
-    static Map<Integer, List<Integer>> workItemToStatusHistoryMap = new TreeMap<>();
+    static Map<Integer, Integer> statusToCountMap = Collections.synchronizedMap(new HashMap<Integer, Integer>());
+    static Map<Integer, List<Integer>> workItemToStatusHistoryMap = Collections.synchronizedMap(new TreeMap<Integer, List<Integer>>());
     static AtomicInteger index = new AtomicInteger();
+
+    static int usersCounter;
 
     TwmTaskProcessor() {
         try {
@@ -63,6 +67,8 @@ public class TwmTaskProcessor {
             System.out.println("wait done");
             //     Thread.sleep(2000);
             printStatusHistoryMap();
+            //   printStatusHistoryForWorkItems(workItems);
+            System.out.println("Index is " + index.get());
 
         } catch (WorkException | IllegalArgumentException ex) {
             System.out.println("Failed to process BatchSlice " + ex);
@@ -100,7 +106,10 @@ public class TwmTaskProcessor {
     }
 
     private void printStatusHistoryMap() {
-
+        usersCounter++;
+        if (usersCounter < 5) {
+            return;
+        }
         for (Entry<Integer, List<Integer>> entrySet : workItemToStatusHistoryMap.entrySet()) {
             Integer key = entrySet.getKey();
             List<Integer> value = entrySet.getValue();
@@ -108,6 +117,21 @@ public class TwmTaskProcessor {
             System.out.println("workItem " + key + " statusHistory=" + value);
 
         }
+    }
+
+    private void printStatusHistoryForWorkItems(List<WorkItem> workItems) {
+        for (WorkItem wi : workItems) {
+            BatchSlice bs = null;
+
+            try {
+                bs = (BatchSlice) wi.getResult();
+                System.out.println("id=" + bs.id + ", status=" + wi.getStatus());
+            } catch (WorkException ex) {
+                Logger.getLogger(TwmTaskProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
+
     }
 }
 
